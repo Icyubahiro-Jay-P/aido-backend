@@ -1,7 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import cookie from 'cookie-parser';
 
 // Register a new user
 export const registerUser = async (req, res) => {

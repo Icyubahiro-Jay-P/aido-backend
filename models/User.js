@@ -5,9 +5,11 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   nationalIdentity: { type: String, required: true, unique: true },
-  dateOfBirth: { type: String, required: true },
-  phoneNumber: { type: Number, required: true, unique: true },
-  role: { type: String, required: true },
+  dateOfBirth: { type: Date, required: true },
+  phoneNumber: { type: String, required: true, unique: true },
+  role: { type: String, enum: ["admin", "manager", "staff"], default: "staff", required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("User", UserSchema);
