@@ -237,7 +237,7 @@ export const forgotPassword = async (req, res) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: "Password Reset - AIDO Group Company Limited Inventory Dashboard",
+        subject: "Password Reset - AIDO Group Company Limited",
         message,   // Now sending full HTML
         html: message  // Most email services expect html field too
       });
