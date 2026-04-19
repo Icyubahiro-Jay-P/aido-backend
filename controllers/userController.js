@@ -181,7 +181,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     // Create reset url
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `https://aido-group-company-ltd.vercel.app/reset-password/${resetToken}`;
 
     // 🔥 Beautiful HTML email based on your dashboard
     const message = `
