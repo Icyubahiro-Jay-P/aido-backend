@@ -32,7 +32,7 @@ export const registerUser = async (req, res) => {
       phoneNumber,
       role,
       createdAt: Date.now(),
-      updatedAt: Date.now(),  
+      updatedAt: Date.now(),
     });
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
@@ -55,9 +55,14 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "24h" },
     );
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // Must be true for Render/HTTPS
+      sameSite: "none", // Crucial: Allows cookie sharing between Vercel and Render
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.json({ message: "Login successful", token: token });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -163,7 +168,9 @@ export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(404).json({ error: "There is no user with that email" });
+      return res
+        .status(404)
+        .json({ error: "There is no user with that email" });
     }
 
     // Get reset token
@@ -213,7 +220,7 @@ export const forgotPassword = async (req, res) => {
             <p>Secure access to your building materials dashboard</p>
         </div>
         <div class="content">
-            <p class="greeting">Hey ${user.fullName || 'User'},</p>
+            <p class="greeting">Hey ${user.fullName || "User"},</p>
             <p class="message">
                 You requested a password reset for your Inventory Dashboard.<br><br>
                 Click the button below to set a new password. This link expires in <strong>10 minutes</strong>.
@@ -238,8 +245,8 @@ export const forgotPassword = async (req, res) => {
       await sendEmail({
         email: user.email,
         subject: "Password Reset - AIDO Group Company Limited",
-        message,   // Now sending full HTML
-        html: message  // Most email services expect html field too
+        message, // Now sending full HTML
+        html: message, // Most email services expect html field too
       });
 
       res.status(200).json({ success: true, data: "Email sent" });
@@ -280,7 +287,7 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Password updated successfully"
+      message: "Password updated successfully",
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
