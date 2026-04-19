@@ -21,7 +21,7 @@ app.use(
     // origin: "*",
     origin: [
       "http://localhost:5173",
-      "https://aido-group-company-ltd.vercel.app/",
+      "https://aido-group-company-ltd.vercel.app",
     ],
     credentials: true,
   }),
