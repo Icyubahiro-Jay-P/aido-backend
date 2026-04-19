@@ -8,6 +8,7 @@ import purchaseRoutes from "./routes/purchaseRoutes.js";
 import saleRoutes from "./routes/saleRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import clientRoutes from "./routes/clientRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import cookieParser from "cookie-parser";
 
 connectDB();
@@ -33,6 +34,7 @@ app.use("/api/purchases", purchaseRoutes);
 app.use("/api/sales", saleRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/clients", clientRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Inventory Management API is running" });
