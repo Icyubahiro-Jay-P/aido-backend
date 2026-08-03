@@ -34,7 +34,9 @@ export const registerUser = async (req, res) => {
       phoneNumber,
       role,
       branch,
-      canSwitchBranches: false,
+      // Bosses can switch between AIDO Group and AIDO Paper Bags; Workers are
+      // pinned to their home branch by the branch middleware.
+      canSwitchBranches: role === "Boss",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -55,6 +57,14 @@ export const login = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ error: "Invalid email or password" });
+    }
+    // Self-heal: existing Boss accounts created before branch switching existed
+    // never got canSwitchBranches. Grant it on login so the frontend shows the
+    // branch switcher without needing a manual migration. Workers stay pinned.
+    if (user.role?.toLowerCase() === "boss" && !user.canSwitchBranches) {
+      user.canSwitchBranches = true;
+      user.updatedAt = Date.now();
+      await user.save();
     }
     const token = jwt.sign(
       { userId: user._id, role: user.role, branch: user.branch, canSwitchBranches: user.canSwitchBranches },
