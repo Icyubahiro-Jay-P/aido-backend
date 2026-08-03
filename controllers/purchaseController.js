@@ -19,7 +19,12 @@ export const createPurchase = async (req, res) => {
       }
     }
 
-    const purchase = new Purchase({ ...req.body, branch: req.branch });
+    const { clientMutationId, ...purchaseBody } = req.body;
+    const purchase = new Purchase({
+      ...purchaseBody,
+      ...(typeof clientMutationId === "string" ? { clientMutationId } : {}),
+      branch: req.branch,
+    });
 
     // Update product quantities when purchase is created
     for (const item of purchase.products) {
