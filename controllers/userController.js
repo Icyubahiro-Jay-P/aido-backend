@@ -15,9 +15,11 @@ export const registerUser = async (req, res) => {
       dateOfBirth,
       phoneNumber,
       role,
-      createdAt,
-      updatedAt,
+      branch,
     } = req.body;
+    if (!branch || !["AIDO_GROUP", "AIDO_PAPER_BAGS"].includes(branch)) {
+      return res.status(400).json({ error: "A valid branch is required" });
+    }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use" });
@@ -31,6 +33,8 @@ export const registerUser = async (req, res) => {
       dateOfBirth,
       phoneNumber,
       role,
+      branch,
+      canSwitchBranches: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -53,7 +57,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id, role: user.role, branch: user.branch, canSwitchBranches: user.canSwitchBranches },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
     );
