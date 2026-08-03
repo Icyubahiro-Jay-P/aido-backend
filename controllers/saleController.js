@@ -70,7 +70,9 @@ export const createSale = async (req, res) => {
       paymentMethod: paymentMethod || 'Cash',
       notes,
       branch: req.branch,
-      clientMutationId: req.body.clientMutationId,
+      ...(typeof req.body.clientMutationId === "string"
+        ? { clientMutationId: req.body.clientMutationId }
+        : {}),
     };
 
     const sale = new Sale(saleData);
