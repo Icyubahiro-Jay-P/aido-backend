@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const BRANCHES = ["AIDO_GROUP", "AIDO_PAPER_BAGS"];
+
 const PurchaseSchema = new mongoose.Schema({
   supplierName: { type: String, required: true },
   products: [
@@ -16,6 +18,16 @@ const PurchaseSchema = new mongoose.Schema({
   purchaseDate: { type: Date, default: Date.now },
   invoiceNumber: { type: String },
   notes: { type: String },
+  branch: {
+    type: String,
+    enum: BRANCHES,
+    required: true,
+    index: true,
+  },
+  clientMutationId: { type: String, index: true, sparse: true },
 });
+
+// Idempotency guard for offline sync replay: unique per branch.
+PurchaseSchema.index({ clientMutationId: 1, branch: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Purchase", PurchaseSchema);
