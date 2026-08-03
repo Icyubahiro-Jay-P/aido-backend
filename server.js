@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
 import "dotenv/config";
 import connectDB from "./db/connectDB.js";
 import { userRoutes } from "./routes/userRoutes.js";
@@ -10,8 +11,19 @@ import reportRoutes from "./routes/reportRoutes.js";
 import clientRoutes from "./routes/clientRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import cookieParser from "cookie-parser";
+import { runMigrations } from "./db/migrations.js";
 
 connectDB();
+
+// Run auto-migrations once the database is connected. Runs exactly once (each
+// migration records itself in the `migrations` collection), so restarting or
+// redeploying never re-runs it. Runs in the background: it never blocks or
+// crashes the server - failures are logged and retried on the next boot.
+mongoose.connection.on("connected", () => {
+  runMigrations().catch((err) => {
+    console.error("[migration] Could not run auto-migrations:", err.message);
+  });
+});
 
 const app = express();
 // Disable ETag generation so authenticated GET requests are never returned
