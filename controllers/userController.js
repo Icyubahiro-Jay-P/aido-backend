@@ -144,7 +144,7 @@ export const changePassword = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findOneAndDelete({ _id: req.params.id, branch: req.branch });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -160,8 +160,9 @@ export const getAllUsers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalUsers = await User.countDocuments();
-    const users = await User.find().select("-password").skip(skip).limit(limit);
+    const filter = { branch: req.branch };
+    const totalUsers = await User.countDocuments(filter);
+    const users = await User.find(filter).select("-password").skip(skip).limit(limit);
 
     res.json({
       users,

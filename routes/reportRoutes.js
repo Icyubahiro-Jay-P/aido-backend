@@ -1,6 +1,6 @@
-// this is the /routes/reportRoutes.js
-
 import express from "express";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { branchMiddleware } from "../middleware/branchMiddleware.js";
 import {
   dailyIncome,
   dailyExpense,
@@ -22,25 +22,12 @@ import {
   annualProfit,
   annualLoss,
   recentTransactions,
-  getInventorySummary,          // ← the useful function I added earlier
+  getInventorySummary,
 } from "../controllers/reportController.js";
 
 const router = express.Router();
 
-/**
- * REPORT ROUTES
- * All routes are GET because these are reporting / dashboard endpoints.
- * 
- * Recommended usage in your main server file (app.js or server.js):
- * 
- * import reportRoutes from "./routes/reportRoutes.js";
- * app.use("/api/reports", reportRoutes);
- * 
- * Then you can call:
- * GET http://localhost:5000/api/reports/daily-income
- * GET http://localhost:5000/api/reports/low-stock?threshold=5
- * etc.
- */
+router.use(authMiddleware, branchMiddleware);
 
 // ==================== INCOME ====================
 router.get("/income/daily", dailyIncome);

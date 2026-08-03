@@ -1,4 +1,6 @@
 import express from "express";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { branchMiddleware } from "../middleware/branchMiddleware.js";
 import {
   createClient,
   getAllClients,
@@ -12,6 +14,8 @@ import {
 
 const router = express.Router();
 
+router.use(authMiddleware, branchMiddleware);
+
 // Create a new client
 router.post("/", createClient);
 
@@ -20,9 +24,6 @@ router.get("/", getAllClients);
 
 // Search clients
 router.get("/search", searchClients);
-
-// Get clients by status (query param)
-// This is handled by the main GET route with status query param
 
 // Get a single client by ID
 router.get("/:id", getClientById);

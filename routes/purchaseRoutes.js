@@ -1,4 +1,6 @@
 import express from "express";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { branchMiddleware } from "../middleware/branchMiddleware.js";
 import {
   createPurchase,
   getPurchases,
@@ -9,23 +11,7 @@ import {
 
 const router = express.Router();
 
-/**
- * PURCHASE ROUTES (CRUD)
- * 
- * Recommended usage in your main server file (app.js or server.js):
- * 
- * import purchaseRoutes from "./routes/purchaseRoutes.js";
- * app.use("/api/purchases", purchaseRoutes);
- * 
- * Then you can call:
- * POST   http://localhost:5000/api/purchases
- * GET    http://localhost:5000/api/purchases
- * GET    http://localhost:5000/api/purchases/67e3f9a2c8d9e1b2a3f4c5d6
- * PUT    http://localhost:5000/api/purchases/67e3f9a2c8d9e1b2a3f4c5d6
- * DELETE http://localhost:5000/api/purchases/67e3f9a2c8d9e1b2a3f4c5d6
- */
-
-// ==================== CRUD OPERATIONS ====================
+router.use(authMiddleware, branchMiddleware);
 
 // Create a new purchase
 router.post("/", createPurchase);

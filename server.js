@@ -45,6 +45,11 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Inventory Management API is running" });
 });
 
+// Lightweight health check used by the frontend for online/offline detection.
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
