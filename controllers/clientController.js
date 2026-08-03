@@ -5,8 +5,8 @@ export const createClient = async (req, res) => {
   try {
     const { fullName, email, phone, address, city, country, taxId, businessName, clientType, notes } = req.body;
 
-    // Check if client already exists
-    const existingClient = await Client.findOne({ email });
+    // Check if client already exists (within this branch)
+    const existingClient = await Client.findOne({ email, branch: req.branch });
     if (existingClient) {
       return res.status(400).json({ message: "Client with this email already exists" });
     }
@@ -22,6 +22,7 @@ export const createClient = async (req, res) => {
       businessName,
       clientType,
       notes,
+      branch: req.branch,
     });
 
     await client.save();
@@ -34,7 +35,7 @@ export const createClient = async (req, res) => {
 // Get all clients
 export const getAllClients = async (req, res) => {
   try {
-    const clients = await Client.find().sort({ registeredDate: -1 });
+    const clients = await Client.find({ branch: req.branch }).sort({ registeredDate: -1 });
     res.status(200).json({ message: "Clients retrieved successfully", clients });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -44,7 +45,7 @@ export const getAllClients = async (req, res) => {
 // Get a single client by ID
 export const getClientById = async (req, res) => {
   try {
-    const client = await Client.findById(req.params.id);
+    const client = await Client.findOne({ _id: req.params.id, branch: req.branch });
     if (!client) return res.status(404).json({ message: "Client not found" });
     res.status(200).json({ message: "Client retrieved successfully", client });
   } catch (error) {
@@ -56,7 +57,7 @@ export const getClientById = async (req, res) => {
 export const getClientsByStatus = async (req, res) => {
   try {
     const { status } = req.query; // Changed from req.params to req.query
-    const clients = await Client.find({ status }).sort({ registeredDate: -1 });
+    const clients = await Client.find({ status, branch: req.branch }).sort({ registeredDate: -1 });
     res.status(200).json({ message: "Clients retrieved successfully", clients });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -69,15 +70,19 @@ export const updateClient = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // If email is being updated, check for duplicates
+    // If email is being updated, check for duplicates (within this branch)
     if (updateData.email) {
-      const existingClient = await Client.findOne({ email: updateData.email, _id: { $ne: id } });
+      const existingClient = await Client.findOne({ email: updateData.email, branch: req.branch, _id: { $ne: id } });
       if (existingClient) {
         return res.status(400).json({ message: "Email already in use by another client" });
       }
     }
 
-    const client = await Client.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    const client = await Client.findOneAndUpdate(
+      { _id: id, branch: req.branch },
+      updateData,
+      { new: true, runValidators: true },
+    );
     if (!client) return res.status(404).json({ message: "Client not found" });
 
     res.status(200).json({ message: "Client updated successfully", client });
@@ -90,7 +95,7 @@ export const updateClient = async (req, res) => {
 export const deleteClient = async (req, res) => {
   try {
     const { id } = req.params;
-    const client = await Client.findByIdAndDelete(id);
+    const client = await Client.findOneAndDelete({ _id: id, branch: req.branch });
     if (!client) return res.status(404).json({ message: "Client not found" });
 
     res.status(200).json({ message: "Client deleted successfully" });
@@ -104,6 +109,7 @@ export const searchClients = async (req, res) => {
   try {
     const { query } = req.query;
     const clients = await Client.find({
+      branch: req.branch,
       $or: [
         { fullName: { $regex: query, $options: "i" } },
         { email: { $regex: query, $options: "i" } },
@@ -122,9 +128,9 @@ export const searchClients = async (req, res) => {
 export const updateClientPurchaseStats = async (req, res) => {
   try {
     const { clientId, amount } = req.body;
-    
-    const client = await Client.findByIdAndUpdate(
-      clientId,
+
+    const client = await Client.findOneAndUpdate(
+      { _id: clientId, branch: req.branch },
       {
         $inc: { totalPurchases: 1, totalSpent: amount },
         lastPurchaseDate: new Date(),
