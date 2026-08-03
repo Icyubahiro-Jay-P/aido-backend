@@ -24,10 +24,19 @@ const PurchaseSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
-  clientMutationId: { type: String, index: true, sparse: true },
+  clientMutationId: { type: String },
 });
 
 // Idempotency guard for offline sync replay: unique per branch.
-PurchaseSchema.index({ clientMutationId: 1, branch: 1 }, { unique: true, sparse: true });
+// Partial filter indexes ONLY string clientMutationIds, so docs with a missing
+// or null value are never indexed (avoids E11000 on duplicate null keys).
+PurchaseSchema.index(
+  { clientMutationId: 1, branch: 1 },
+  {
+    name: "cmi_branch_unique",
+    unique: true,
+    partialFilterExpression: { clientMutationId: { $type: "string" } },
+  },
+);
 
 export default mongoose.model("Purchase", PurchaseSchema);
