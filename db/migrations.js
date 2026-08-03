@@ -59,6 +59,37 @@ export const MIGRATIONS = [
       );
     },
   },
+  {
+    key: "sale_purchase_partial_index_v2",
+    name: "Replace sparse unique index with partial unique index on {clientMutationId, branch}",
+    run: async () => {
+      for (const [model, label] of [
+        [Sale, "Sales"],
+        [Purchase, "Purchases"],
+      ]) {
+        const col = model.collection;
+        const existing = await col.indexes();
+        const stale = existing.filter((i) =>
+          ["clientMutationId_1_branch_1", "clientMutationId_1", "cmi_branch_unique"].includes(i.name),
+        );
+        for (const index of stale) {
+          await col.dropIndex(index.name);
+          console.log(`[migration] ${label}: dropped stale index ${index.name}`);
+        }
+        await col.createIndex(
+          { clientMutationId: 1, branch: 1 },
+          {
+            name: "cmi_branch_unique",
+            unique: true,
+            partialFilterExpression: { clientMutationId: { $type: "string" } },
+          },
+        );
+        console.log(
+          `[migration] ${label}: created partial unique index "cmi_branch_unique" on {clientMutationId, branch}`,
+        );
+      }
+    },
+  },
 ];
 
 // Runs any pending migrations. Safe to call on every startup: completed
