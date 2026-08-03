@@ -63,7 +63,7 @@ export const sendContactMessage = async (req, res) => {
           <p style="color: #166534; margin: 0;">
             <strong>Business Hours:</strong><br>
             Monday - Friday: 9:00 AM - 6:00 PM<br>
-            Saturday: 10:00 AM - 4:00 PM<br>
+            Saturday: Closed
             Sunday: Closed
           </p>
         </div>

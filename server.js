@@ -14,6 +14,11 @@ import cookieParser from "cookie-parser";
 connectDB();
 
 const app = express();
+// Disable ETag generation so authenticated GET requests are never returned
+// as 304 Not Modified. The browser caches the /profile response with its
+// ETag, then on re-login sends If-None-Match and Express replies 304, which
+// axios treats as an error -> user gets logged out despite valid credentials.
+app.disable("etag");
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());

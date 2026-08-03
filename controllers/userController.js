@@ -57,10 +57,15 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
     );
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Must be true for Render/HTTPS
-      sameSite: "none", // Crucial: Allows cookie sharing between Vercel and Render
+      // Secure only over HTTPS (Render/Vercel). Browsers refuse to set Secure
+      // cookies over plain http://localhost, which silently broke local login.
+      secure: isProduction,
+      // 'none' is required for cross-site (Vercel frontend -> Render backend);
+      // 'lax' works on localhost where frontend and backend are the same site.
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.json({ message: "Login successful", token: token });
@@ -70,7 +75,11 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("token");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  });
   res.json({ message: "Logout successful" });
 };
 
