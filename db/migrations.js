@@ -90,6 +90,36 @@ export const MIGRATIONS = [
       }
     },
   },
+  {
+    key: "sale_payment_fields_v3",
+    name: "Add amountPaid/balance to sales: backfill existing sales as fully paid",
+    run: async () => {
+      // Any existing sale recorded before payment tracking is treated as fully
+      // paid (amountPaid = totalAmount, balance = 0).
+      const res = await Sale.collection.updateMany(
+        {
+          $or: [
+            { amountPaid: { $exists: false } },
+            { amountPaid: null },
+            { balance: { $exists: false } },
+          ],
+        },
+        [
+          {
+            $set: {
+              amountPaid: {
+                $ifNull: ["$amountPaid", { $ifNull: ["$totalAmount", 0] }],
+              },
+              balance: { $ifNull: ["$balance", 0] },
+            },
+          },
+        ],
+      );
+      console.log(
+        `[migration] Sales payment fields: ${res.modifiedCount} sale(s) backfilled as fully paid`,
+      );
+    },
+  },
 ];
 
 // Runs any pending migrations. Safe to call on every startup: completed
