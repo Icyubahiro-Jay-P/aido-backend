@@ -17,6 +17,8 @@ const SaleSchema = new mongoose.Schema({
   ],
   totalAmount: { type: Number, required: true, min: 0 },
   totalProfit: { type: Number, default: 0 }, // Sum of all product profits
+  amountPaid: { type: Number, default: 0, min: 0 }, // Cash actually received
+  balance: { type: Number, default: 0, min: 0 }, // Outstanding credit = totalAmount - amountPaid
   paymentMethod: { type: String, enum: ["Cash", "MoMo"], default: "Cash" },
   saleDate: { type: Date, default: Date.now },
   notes: { type: String },
