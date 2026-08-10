@@ -61,12 +61,22 @@ export const createSale = async (req, res) => {
       });
     }
 
+    // Payment tracking: amountPaid defaults to the full total (cash sale).
+    // balance is the outstanding credit a customer still owes.
+    const totalAmount = Number(req.body.totalAmount) || 0;
+    const amountPaidRaw =
+      req.body.amountPaid != null ? Number(req.body.amountPaid) : totalAmount;
+    const amountPaid = Math.max(0, amountPaidRaw);
+    const balance = Math.max(0, totalAmount - amountPaid);
+
     // Create the sale with profit information
     const saleData = {
       clientName,
       products: enrichedProducts,
-      totalAmount: req.body.totalAmount,
+      totalAmount,
       totalProfit,
+      amountPaid,
+      balance,
       paymentMethod: paymentMethod || 'Cash',
       notes,
       branch: req.branch,
@@ -99,7 +109,17 @@ export const createSale = async (req, res) => {
 // Get all sales
 export const getSales = async (req, res) => {
   try {
-    const sales = await Sale.find({ branch: req.branch }).sort({ saleDate: -1 });
+    const filter = { branch: req.branch };
+    const { payment } = req.query;
+
+    // ?payment=credit -> only sales with outstanding balance (debt)
+    // ?payment=paid    -> only fully paid sales
+    if (payment === "credit") filter.balance = { $gt: 0 };
+    if (payment === "paid") {
+      filter.$or = [{ balance: { $lte: 0 } }, { balance: { $exists: false } }];
+    }
+
+    const sales = await Sale.find(filter).sort({ saleDate: -1 });
     res.status(200).json({ message: "Sales retrieved successfully", sales });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -188,11 +208,20 @@ export const updateSale = async (req, res) => {
       }
     }
 
+    // Recompute payment fields: balance = totalAmount - amountPaid
+    const total = Number(totalAmount) || 0;
+    const amountPaidRaw =
+      req.body.amountPaid != null ? Number(req.body.amountPaid) : total;
+    const amountPaid = Math.max(0, amountPaidRaw);
+    const balance = Math.max(0, total - amountPaid);
+
     const updatedSaleData = {
       clientName,
       products: enrichedProducts,
-      totalAmount,
+      totalAmount: total,
       totalProfit,
+      amountPaid,
+      balance,
       paymentMethod: paymentMethod || 'Cash',
       notes
     };
