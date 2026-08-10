@@ -106,6 +106,71 @@ export const createSale = async (req, res) => {
   }
 };
 
+// Record a debt payment against a credit sale (debt collection).
+export const recordPayment = async (req, res) => {
+  try {
+    const sale = await Sale.findOne({ _id: req.params.id, branch: req.branch });
+    if (!sale) return res.status(404).json({ message: "Sale not found" });
+
+    // Offline sync replay guard: never double-book the same payment.
+    if (req.body.mutationId) {
+      const already = (sale.payments || []).some(
+        (p) => p.mutationId === req.body.mutationId,
+      );
+      if (already) {
+        return res
+          .status(200)
+          .json({ message: "Payment already recorded", sale, duplicate: true });
+      }
+    }
+
+    const outstanding = Math.max(
+      0,
+      (sale.totalAmount || 0) - (sale.amountPaid || 0),
+    );
+    if (outstanding <= 0) {
+      return res
+        .status(400)
+        .json({ message: "This sale has no outstanding balance" });
+    }
+
+    const requested = Number(req.body.amount);
+    if (!Number.isFinite(requested) || requested <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Payment amount must be greater than zero" });
+    }
+
+    // Clamp to the outstanding balance so a sale is never over-paid.
+    const amount = Math.min(requested, outstanding);
+
+    sale.amountPaid = (sale.amountPaid || 0) + amount;
+    sale.balance = Math.max(0, (sale.totalAmount || 0) - sale.amountPaid);
+    sale.payments = sale.payments || [];
+    sale.payments.push({
+      amount,
+      paymentMethod: req.body.paymentMethod || "Cash",
+      receivedBy: req.body.receivedBy || "",
+      ...(typeof req.body.mutationId === "string"
+        ? { mutationId: req.body.mutationId }
+        : {}),
+      paymentDate: req.body.paymentDate
+        ? new Date(req.body.paymentDate)
+        : new Date(),
+    });
+
+    await sale.save();
+
+    res.status(200).json({
+      message: "Payment recorded successfully",
+      sale,
+      fullyPaid: sale.balance <= 0,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get all sales
 export const getSales = async (req, res) => {
   try {
