@@ -12,7 +12,7 @@ export const dailyIncome = async (req, res) => {
 
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfDay, $lte: endOfDay } } },
-      { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+      { $group: { _id: null, totalIncome: { $sum: { $ifNull: ["$amountPaid", "$totalAmount"] } } } }
     ]);
 
     const income = result.length > 0 ? result[0].totalIncome : 0;
@@ -91,7 +91,7 @@ export const weeklyIncome = async (req, res) => {
 
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+      { $group: { _id: null, totalIncome: { $sum: { $ifNull: ["$amountPaid", "$totalAmount"] } } } }
     ]);
 
     const income = result.length > 0 ? result[0].totalIncome : 0;
@@ -126,7 +126,7 @@ export const monthlyIncome = async (req, res) => {
 
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfMonth, $lte: endOfMonth } } },
-      { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+      { $group: { _id: null, totalIncome: { $sum: { $ifNull: ["$amountPaid", "$totalAmount"] } } } }
     ]);
 
     const income = result.length > 0 ? result[0].totalIncome : 0;
@@ -162,7 +162,7 @@ export const annualIncome = async (req, res) => {
 
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfYear, $lte: endOfYear } } },
-      { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+      { $group: { _id: null, totalIncome: { $sum: { $ifNull: ["$amountPaid", "$totalAmount"] } } } }
     ]);
 
     const income = result.length > 0 ? result[0].totalIncome : 0;
@@ -363,9 +363,9 @@ export const recentTransactions = async (req, res) => {
   try {
     const limitCount = parseInt(req.query.limit) || 10;
 
-    // Get recent sales as income transactions
+    // Get recent sales as income transactions (amount = cash actually received)
     const sales = await Sale.find({ branch: req.branch })
-      .select("_id clientName totalAmount saleDate")
+      .select("_id clientName totalAmount amountPaid saleDate")
       .sort({ saleDate: -1 })
       .limit(limitCount)
       .lean();
@@ -374,7 +374,7 @@ export const recentTransactions = async (req, res) => {
       _id: sale._id,
       type: 'income',
       description: `Sale to ${sale.clientName}`,
-      amount: sale.totalAmount,
+      amount: sale.amountPaid ?? sale.totalAmount,
       date: sale.saleDate
     }));
 
