@@ -73,7 +73,7 @@ export const dailyProfit = async (req, res) => {
     // Use totalProfit field directly from sales (calculated at time of sale)
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfDay, $lte: endOfDay } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const profit = result.length > 0 ? result[0].totalProfit : 0;
@@ -94,7 +94,7 @@ export const dailyLoss = async (req, res) => {
     // With validation preventing unitPrice <= purchasePrice, loss should be 0
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfDay, $lte: endOfDay } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const totalProfit = result.length > 0 ? result[0].totalProfit : 0;
@@ -268,7 +268,7 @@ export const weeklyProfit = async (req, res) => {
     // Use totalProfit field directly from sales (calculated at time of sale)
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const profit = result.length > 0 ? result[0].totalProfit : 0;
@@ -287,7 +287,7 @@ export const weeklyLoss = async (req, res) => {
     // With validation preventing unitPrice <= purchasePrice, loss should be 0
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const totalProfit = result.length > 0 ? result[0].totalProfit : 0;
@@ -308,7 +308,7 @@ export const monthlyProfit = async (req, res) => {
     // Use totalProfit field directly from sales (calculated at time of sale)
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfMonth, $lte: endOfMonth } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const profit = result.length > 0 ? result[0].totalProfit : 0;
@@ -328,7 +328,7 @@ export const monthlyLoss = async (req, res) => {
     // With validation preventing unitPrice <= purchasePrice, loss should be 0
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfMonth, $lte: endOfMonth } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const totalProfit = result.length > 0 ? result[0].totalProfit : 0;
@@ -349,7 +349,7 @@ export const annualProfit = async (req, res) => {
     // Use totalProfit field directly from sales (calculated at time of sale)
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfYear, $lte: endOfYear } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const profit = result.length > 0 ? result[0].totalProfit : 0;
@@ -369,7 +369,7 @@ export const annualLoss = async (req, res) => {
     // With validation preventing unitPrice <= purchasePrice, loss should be 0
     const result = await Sale.aggregate([
       { $match: { branch: req.branch, saleDate: { $gte: startOfYear, $lte: endOfYear } } },
-      { $group: { _id: null, totalProfit: { $sum: "$totalProfit" } } }
+      { $group: { _id: null, totalProfit: PAID_PROFIT_SUM } }
     ]);
 
     const totalProfit = result.length > 0 ? result[0].totalProfit : 0;
