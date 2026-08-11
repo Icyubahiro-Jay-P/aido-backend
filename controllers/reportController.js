@@ -3,6 +3,28 @@ import Product from "../models/Product.js";
 import Sale from "../models/Sale.js";
 import Purchase from "../models/Purchase.js";
 
+// Profit is recognised only from money actually received, not money still owed.
+// For credit sales, only the paid share of the profit counts: totalProfit x (amountPaid / totalAmount).
+const PAID_PROFIT_SUM = {
+  $sum: {
+    $cond: [
+      { $gt: ["$totalAmount", 0] },
+      {
+        $multiply: [
+          "$totalProfit",
+          {
+            $divide: [
+              { $ifNull: ["$amountPaid", "$totalAmount"] },
+              "$totalAmount",
+            ],
+          },
+        ],
+      },
+      0,
+    ],
+  },
+};
+
 export const dailyIncome = async (req, res) => {
   try {
     const startOfDay = new Date();
