@@ -6,7 +6,11 @@ const PurchaseSchema = new mongoose.Schema({
   supplierName: { type: String, required: true },
   products: [
     {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
       productName: { type: String, required: true },
       quantityPurchased: { type: Number, required: true, min: 1 },
       unitCost: { type: Number, required: true, min: 0 },
@@ -14,7 +18,11 @@ const PurchaseSchema = new mongoose.Schema({
     },
   ],
   totalAmount: { type: Number, required: true, min: 0 },
-  paymentMethod: { type: String, enum: ["Cash", "MoMo"], default: "Cash" },
+  paymentMethod: {
+    type: String,
+    enum: ["Cash", "MoMo", "Credit"],
+    default: "Cash",
+  },
   purchaseDate: { type: Date, default: Date.now },
   invoiceNumber: { type: String },
   notes: { type: String },
