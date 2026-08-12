@@ -6,7 +6,11 @@ const SaleSchema = new mongoose.Schema({
   clientName: { type: String, required: true },
   products: [
     {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
       productName: { type: String, required: true },
       quantitySold: { type: Number, required: true, min: 1 },
       purchasePrice: { type: Number, required: true, min: 0 },
@@ -22,13 +26,21 @@ const SaleSchema = new mongoose.Schema({
   payments: [
     {
       amount: { type: Number, required: true, min: 0 },
-      paymentMethod: { type: String, enum: ["Cash", "MoMo"], default: "Cash" },
+      paymentMethod: {
+        type: String,
+        enum: ["Cash", "MoMo", "Credit"],
+        default: "Cash",
+      },
       receivedBy: { type: String, default: "" },
       mutationId: { type: String },
       paymentDate: { type: Date, default: Date.now },
     },
   ], // Debt payments collected against the outstanding balance
-  paymentMethod: { type: String, enum: ["Cash", "MoMo"], default: "Cash" },
+  paymentMethod: {
+    type: String,
+    enum: ["Cash", "MoMo", "Credit"],
+    default: "Cash",
+  },
   saleDate: { type: Date, default: Date.now },
   notes: { type: String },
   branch: {
